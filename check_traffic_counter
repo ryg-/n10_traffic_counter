@@ -1,0 +1,43 @@
+#! /usr/bin/perl
+use strict;
+require 5.6.0;
+use lib qw( /usr/lib/nagios/plugins );
+use utils qw(%ERRORS $TIMEOUT &print_revision &support &usage);
+
+my $host=@ARGV[0];
+my $mode=@ARGV[1];
+my $ws='WARNING';
+my $cs='CRITICAL';
+my $os='OK';
+my $us='UNKNOWN';
+#in
+my $wv='99';
+my $ov='60';
+my $cv='150';
+#oout
+if($mode eq 'out'){
+    $wv='30';
+    $ov='19';
+    $cv='60';
+}
+#print "cat /tmp/traffic.log | grep '$host'| grep $mode\n";
+my $line = `cat /tmp/traffic.log | grep '$host'| grep $mode`;
+my @v = split(/\s+/,$line);
+my $resstr;
+my $resc;
+if(    $v[2] < $ov){
+    $resstr = "$os: $mode $host $v[2] kb | traffic=$v[2]";
+    $resc = 0;
+}elsif($v[2] < $wv){
+    $resstr = "$ws: $mode $host $v[2] kb | traffic=$v[2]";
+    $resc = 1;
+}elsif($v[2] >= $wv){
+    $resstr = "$cs: $mode $host $v[2] kb | traffic=$v[2]";
+    $resc = 2;
+}else{
+    $resstr = "$us: $mode $host -1 | traffic=$v[0]";
+    $resc = 3;
+}
+print "$resstr\n";
+exit ($resc);
+
